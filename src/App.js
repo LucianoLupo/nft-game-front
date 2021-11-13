@@ -17,32 +17,40 @@ const App = () => {
   // State
   const [currentAccount, setCurrentAccount] = useState(null);
   const [characterNFT, setCharacterNFT] = useState(null);
+  const [isRightNetwork, setIsRightNetwork] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
   // Actions
   const checkIfWalletIsConnected = async () => {
-    try {
-      const { ethereum } = window;
+    const { ethereum } = window;
 
-      if (!ethereum) {
-        console.log("Make sure you have MetaMask!");
-        return;
+    if (!ethereum) {
+      console.log("Make sure you have metamask!");
+      return;
+    } else {
+      console.log("We have the ethereum object", ethereum);
+      let chainId = await ethereum.request({ method: "eth_chainId" });
+      console.log("Connected to chain " + chainId);
+
+      // String, hex code of the chainId of the Rinkebey test network
+      const rinkebyChainId = "0x4";
+      if (chainId !== rinkebyChainId) {
+        alert("You are not connected to the Rinkeby Test Network!");
       } else {
-        console.log("We have the ethereum object", ethereum);
+        setIsRightNetwork(true);
       }
+    }
 
-      const accounts = await ethereum.request({ method: "eth_accounts" });
+    const accounts = await ethereum.request({ method: "eth_accounts" });
+    console.log("Accounts", accounts);
 
-      if (accounts.length !== 0) {
-        const account = accounts[0];
-        console.log("Found an authorized account:", account);
-        setCurrentAccount(account);
-      } else {
-        console.log("No authorized account found");
-      }
-    } catch (error) {
-      console.log(error);
+    if (accounts.length !== 0) {
+      const account = accounts[0];
+      console.log("Found an authorized account:", account);
+      setCurrentAccount(account);
+    } else {
+      console.log("No authorized account found");
     }
   };
 
@@ -106,18 +114,18 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
-
   // UseEffects
   useEffect(() => {
     /*
      * Anytime our component mounts, make sure to immiediately set our loading state
      */
-    setIsLoading(true);
     checkIfWalletIsConnected();
+    setIsLoading(true);
   }, []);
+
+  useEffect(() => {
+    console.log("Connect to the right testnet", isRightNetwork);
+  }, [isRightNetwork]);
 
   useEffect(() => {
     const fetchNFTMetadata = async () => {
